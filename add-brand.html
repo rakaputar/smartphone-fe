@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tambah Brand - Smartphone Info</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+    <a class="navbar-brand" href="index.html">Smartphone Info</a>
+    <div class="ms-auto">
+      <button id="btnLogout" class="btn btn-outline-danger">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <h2 class="text-center">Tambah Brand</h2>
+    <form id="brandForm">
+      <div class="mb-3">
+        <label for="brandName" class="form-label">Nama Brand</label>
+        <input type="text" id="brandName" name="brandName" class="form-control" required />
+      </div>
+      <button type="submit" class="btn btn-success">Simpan Brand</button>
+      <a href="index.html" class="btn btn-secondary ms-2">Kembali</a>
+    </form>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Proteksi halaman untuk memastikan pengguna terautentikasi
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('brandForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('brandName').value.trim();
+
+      if (!name) {
+        alert('Nama brand tidak boleh kosong.');
+        return;
+      }
+
+      const res = await fetchWithAuth('http://localhost:5000/api/brands', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name })
+      });
+
+      if (res.ok) {
+        alert('Brand berhasil ditambahkan');
+        window.location.href = 'index.html';
+      } else {
+        alert('Gagal menambahkan brand');
+      }
+    });
+  </script>
+</body>
+</html>

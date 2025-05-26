@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tambah Smartphone - Smartphone Info</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
+    <a class="navbar-brand" href="index.html">Smartphone Info</a>
+    <div class="ms-auto">
+      <button id="btnLogout" class="btn btn-outline-danger">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <h2 class="text-center">Tambah Smartphone</h2>
+    <form id="addForm">
+      <div class="mb-3">
+        <label for="name" class="form-label">Nama Smartphone</label>
+        <input type="text" id="name" name="name" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label for="price" class="form-label">Harga</label>
+        <input type="text" id="price" name="price" class="form-control" required />
+      </div>
+      <div class="mb-3">
+        <label for="specs" class="form-label">Spesifikasi</label>
+        <textarea id="specs" name="specs" class="form-control" rows="3" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="brand" class="form-label">Brand</label>
+        <select id="brand" name="brand" class="form-select" required></select>
+      </div>
+      <div class="mb-3">
+        <label for="imageUrl" class="form-label">URL Gambar</label>
+        <input type="url" id="imageUrl" name="imageUrl" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-success">Simpan</button>
+      <a href="index.html" class="btn btn-secondary ms-2">Kembali</a>
+    </form>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Proteksi halaman untuk memastikan pengguna terautentikasi
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    });
+
+    // Ambil list brand untuk dropdown
+    fetchWithAuth('http://localhost:5000/api/brands')
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById('brand');
+        data.forEach(b => {
+          const option = document.createElement('option');
+          option.value = b.id;
+          option.textContent = b.name;
+          select.appendChild(option);
+        });
+      });
+
+    // Submit tambah smartphone
+    document.getElementById('addForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+
+      const name = form.name.value.trim();
+      const price = parseFloat(form.price.value.trim());
+      const specs = form.specs.value.trim();
+      const brandId = parseInt(form.brand.value);
+      const imageUrl = form.imageUrl.value.trim();
+
+      if (!name || isNaN(price) || price <= 0 || !specs || isNaN(brandId)) {
+          alert('Mohon isi semua field dengan benar.');
+          return;
+      }
+
+      // Validasi URL (jika diisi)
+      if (imageUrl && !/^https?:\/\/.+\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(imageUrl)) {
+          alert('URL gambar tidak valid.');
+          return;
+      }
+
+      const smartphoneData = {
+          name,
+          price,
+          specs,
+          brandId,
+          imageUrl
+      };
+
+      const res = await fetchWithAuth('http://localhost:5000/api/smartphones', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(smartphoneData)
+      });
+
+      if (res.ok) {
+        alert('Smartphone berhasil ditambah');
+        window.location.href = 'index.html';
+      } else {
+        alert('Gagal menambah smartphone');
+      }
+    });
+  </script>
+</body>
+</html>
